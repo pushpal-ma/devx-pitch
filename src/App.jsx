@@ -1,648 +1,352 @@
-import { useState, useEffect } from "react";
-import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>devx AI labs — Investor Deck 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;color:#fff;font-family:'Space Grotesk',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+:root{--cr:#DC143C;--crd:rgba(220,20,60,0.1);--crb:rgba(220,20,60,0.3);--card:#0a0a0a;--card2:#111;--border:#1e1e1e;--muted:#888;--dim:#555;--faint:#161616}
+/* Nav */
+nav{background:var(--card);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:100}
+.brand{font-weight:700;font-size:15px;color:var(--cr);letter-spacing:-0.02em}
+.nav-sub{color:var(--dim);font-size:11px;letter-spacing:0.05em}
+.tabs{display:flex;gap:3px;flex-wrap:wrap}
+.tab-btn{padding:4px 10px;font-size:10px;font-weight:600;border:none;cursor:pointer;border-radius:2px;letter-spacing:0.05em;font-family:'Space Grotesk',sans-serif;background:transparent;color:var(--dim);transition:all 0.15s}
+.tab-btn.active{background:var(--cr);color:#fff}
+/* Slides */
+.slides{flex:1;padding:40px 48px;max-width:940px;margin:0 auto;width:100%}
+.slide{display:none}.slide.active{display:block}
+/* Footer */
+footer{background:var(--card);border-top:1px solid var(--border);padding:12px 48px;display:flex;align-items:center;justify-content:space-between}
+.foot-btn{padding:8px 20px;font-size:12px;font-weight:600;letter-spacing:0.05em;font-family:'Space Grotesk',sans-serif;cursor:pointer;transition:all 0.15s}
+.foot-prev{border:1px solid var(--border);background:transparent;color:#fff}
+.foot-next{border:1px solid var(--cr);background:var(--cr);color:#fff}
+.foot-prev:disabled,.foot-next:disabled{opacity:0.3;cursor:not-allowed}
+.foot-info{text-align:center}
+.foot-label{color:var(--dim);font-size:11px;letter-spacing:0.1em}
+.dots{display:flex;gap:4px;justify-content:center;margin-top:6px}
+.dot{height:4px;background:var(--border);cursor:pointer;transition:width 0.2s}
+.dot.active{background:var(--cr)}
+/* Reusable */
+.sl{font-size:10px;font-weight:700;letter-spacing:0.15em;color:var(--cr);border-bottom:1px solid var(--cr);padding-bottom:2px;display:inline-block;margin-bottom:14px}
+h2{font-size:28px;font-weight:700;margin-bottom:10px;line-height:1.2;letter-spacing:-0.02em}
+.sub{color:var(--muted);font-size:14px;margin-bottom:24px;line-height:1.75;max-width:580px;text-align:left}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.card{background:var(--card);border:1px solid var(--border);padding:20px}
+.card-cr{background:var(--card);border:1px solid var(--crb);padding:20px;border-top:3px solid var(--cr)}
+.card-l{background:var(--card);border:1px solid var(--border);padding:20px;border-left:3px solid var(--cr)}
+.card2{background:var(--card2);border:1px solid var(--border);padding:16px}
+.card2-l{background:var(--card2);border:1px solid var(--border);padding:16px;border-left:2px solid var(--cr)}
+.stat{background:var(--card);border:1px solid var(--border);padding:14px 16px;border-left:3px solid var(--cr)}
+.stat-label{color:var(--muted);font-size:10px;font-weight:600;letter-spacing:0.1em;margin-bottom:6px}
+.stat-val{font-size:22px;font-weight:700;line-height:1}
+.stat-sub{color:var(--dim);font-size:11px;margin-top:6px}
+.tag{font-size:10px;font-weight:600;padding:3px 10px;letter-spacing:0.08em;white-space:nowrap;background:transparent;color:var(--muted);border:1px solid var(--dim);display:inline-block}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:36px}
+.cr{color:var(--cr)}
+.mu{color:var(--muted)}
+.di{color:var(--dim)}
+.chk{display:flex;flex-direction:column;gap:8px}
+.chk-item{display:flex;gap:8px;align-items:flex-start}
+.chk-icon{color:var(--cr);flex-shrink:0}
+.chk-text{color:var(--muted);font-size:13px;line-height:1.5}
+.section-title{font-weight:700;font-size:12px;letter-spacing:0.08em;margin-bottom:12px}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.bar-label{width:130px;text-align:right;font-size:10px;color:var(--muted);flex-shrink:0;white-space:nowrap}
+.bar-track{flex:1;height:18px;background:var(--faint);position:relative}
+.bar-fill{position:absolute;left:0;top:0;bottom:0}
+.bar-pct{width:28px;font-size:10px;color:var(--dim);font-weight:700;text-align:right;flex-shrink:0}
+.rpe-row{margin-bottom:12px}
+.rpe-header{display:flex;justify-content:space-between;margin-bottom:4px}
+.rpe-track{height:6px;background:var(--faint)}
+.rpe-fill{height:100%}
+.alert{background:var(--crd);border:1px solid var(--crb);padding:16px}
+.alert-text{color:#ff8090;font-size:13px;line-height:1.7}
+.clients{display:flex;flex-wrap:wrap;gap:6px}
+.client-chip{font-size:11px;padding:4px 10px;border:1px solid var(--border);color:var(--muted);background:var(--card2)}
+.highlight-box{background:var(--crd);border:1px solid var(--crb);padding:14px;margin-top:14px}
+.proj-card{background:var(--card2);border-top:2px solid var(--border);border:1px solid var(--border);padding:12px 10px;text-align:center}
+.proj-card.hi{border-top:2px solid var(--cr)}
+.proj-year{font-weight:700;font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:0.05em}
+.proj-card.hi .proj-year{color:var(--cr)}
+.proj-rev{font-size:14px;font-weight:700;margin-bottom:4px}
+.proj-note{font-size:10px;color:var(--dim);margin-bottom:5px}
+.proj-gm{font-size:10px;color:var(--dim)}
+.proj-card.hi .proj-gm{color:var(--cr)}
+.proj-pbt{font-size:10px;color:var(--cr);margin-top:2px}
+.org-container{background:var(--card);padding:20px;display:flex;flex-direction:column}
+.org-title{font-weight:700;font-size:12px;margin-bottom:16px;text-align:center;letter-spacing:0.05em}
+.metric-box{background:var(--crd);border:1px solid var(--crb);padding:18px}
+.mkt-card{background:var(--card);border:1px solid var(--border);padding:22px;text-align:center;border-top:2px solid var(--cr)}
+.mkt-label{color:var(--dim);font-size:10px;font-weight:600;letter-spacing:0.12em;margin-bottom:8px}
+.mkt-val{font-size:30px;font-weight:700;color:var(--cr);margin-bottom:8px}
+.mkt-sub{color:var(--muted);font-size:12px}
+.why-card{background:var(--card);border:1px solid var(--border);padding:22px;border-top:2px solid var(--cr)}
+.why-icon{font-size:26px;margin-bottom:10px}
+.why-label{font-weight:700;font-size:12px;color:var(--cr);margin-bottom:10px;letter-spacing:0.08em}
+.why-text{color:var(--muted);font-size:13px;line-height:1.7}
+.proof-box{background:var(--card);border:1px solid var(--border);padding:22px;border-left:3px solid var(--cr);margin-top:20px}
+.proof-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.proof-item{text-align:center;padding:14px 8px;background:var(--card2);border:1px solid var(--border)}
+.proof-val{font-size:18px;font-weight:700;color:var(--cr);margin-bottom:4px}
+.proof-label{font-weight:700;font-size:11px;letter-spacing:0.05em;margin-bottom:4px}
+.proof-sub{color:var(--muted);font-size:10px}
+.outcome-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+canvas{max-height:180px}
+</style>
+</head>
+<body>
 
-const FONT_URL = "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap";
-
-const C = {
-  bg:"#000000", card:"#0a0a0a", card2:"#111111", border:"#1e1e1e", border2:"#2a2a2a",
-  text:"#ffffff", muted:"#888888", dim:"#555555", faint:"#161616",
-  crimson:"#DC143C", crimsonD:"rgba(220,20,60,0.1)", crimsonB:"rgba(220,20,60,0.3)",
-};
-
-const CLIENTS = [
-  "Nykaa","WOW Skin Science","Dot & Key","Cetaphil","Foxtale","Sugar",
-  "The Whole Truth","Hamleys","Superdry","Hugo Boss","Raymond","Mokobara",
-  "The Sleep Company","Innisfree","Avimee Herbal","Kalki Fashion","Moxie",
-  "Beardo","Vedic Lab","Knya","Cello","Comet","Secret Alchemist","EUME",
-  "Svaraa","Salad Days","Nailinit","Replyall","Frido","À la mode","Aiza",
-  "KameroAI","The Indus Valley","Wonderla",
-];
-
-const projData = [
-  {year:"FY25",  rev:5.61,  clr:"#2a2a2a"},
-  {year:"FY26",  rev:16.86, clr:"#555555"},
-  {year:"FY27E", rev:63.5,  clr:C.crimson},
-  {year:"FY28E", rev:184,   clr:"#aa1030"},
-  {year:"FY29E", rev:460,   clr:"#880c28"},
-];
-
-const SLIDES = [
-  "Cover","Problem","Our Bet","What We Do","Diamond Model",
-  "Outcome Manager","North Star","Traction","Financials","Market","Use of Funds","Why Now"
-];
-
-const Tag = ({label,color}) => (
-  <span style={{fontSize:10,fontWeight:600,padding:"3px 10px",letterSpacing:"0.08em",whiteSpace:"nowrap",
-    background:"transparent",color:color||C.muted,border:`1px solid ${color||C.dim}`}}>{label}</span>
-);
-
-const Stat = ({label,value,sub,color}) => (
-  <div style={{background:C.card,border:`1px solid ${C.border}`,padding:"14px 16px",borderLeft:`3px solid ${C.crimson}`}}>
-    <div style={{color:C.muted,fontSize:10,fontWeight:600,letterSpacing:"0.1em",marginBottom:6}}>{label}</div>
-    <div style={{fontSize:22,fontWeight:700,color:color||C.text,lineHeight:1}}>{value}</div>
-    {sub&&<div style={{color:C.dim,fontSize:11,marginTop:6}}>{sub}</div>}
+<nav>
+  <div style="display:flex;align-items:center;gap:10px">
+    <span class="brand">devx AI labs</span>
+    <span class="nav-sub">· INVESTOR DECK · 2026</span>
   </div>
-);
+  <div class="tabs" id="tabs"></div>
+</nav>
 
-const SL = ({text}) => (
-  <div style={{marginBottom:14}}>
-    <span style={{fontSize:10,fontWeight:700,letterSpacing:"0.15em",color:C.crimson,borderBottom:`1px solid ${C.crimson}`,paddingBottom:2}}>{text}</span>
+<div class="slides" id="slides"></div>
+
+<footer>
+  <button class="foot-btn foot-prev" id="prevBtn" onclick="go(-1)">← PREV</button>
+  <div class="foot-info">
+    <div class="foot-label" id="footLabel"></div>
+    <div class="dots" id="dots"></div>
   </div>
-);
+  <button class="foot-btn foot-next" id="nextBtn" onclick="go(1)">NEXT →</button>
+</footer>
 
-const H = ({children}) => <h2 style={{fontSize:28,fontWeight:700,margin:"0 0 10px",lineHeight:1.2,letterSpacing:"-0.02em"}}>{children}</h2>;
-const P = ({children}) => <p style={{color:C.muted,fontSize:14,margin:"0 0 24px",lineHeight:1.75,maxWidth:580}}>{children}</p>;
-const Chk = ({items,color,icon}) => items.map(t=>(
-  <div key={t} style={{display:"flex",gap:8,marginBottom:8,alignItems:"flex-start"}}>
-    <span style={{color:color||C.crimson,flexShrink:0}}>{icon||"›"}</span>
-    <span style={{color:C.muted,fontSize:13,lineHeight:1.5}}>{t}</span>
-  </div>
-));
+<script>
+const SLIDES = ["Cover","Problem","Our Bet","What We Do","Diamond Model","Outcome Manager","North Star","Traction","Financials","Market","Use of Funds","Why Now"];
+const CLIENTS = ["Nykaa","WOW Skin Science","Dot & Key","Cetaphil","Foxtale","Sugar","The Whole Truth","Hamleys","Superdry","Hugo Boss","Raymond","Mokobara","The Sleep Company","Innisfree","Avimee Herbal","Kalki Fashion","Moxie","Beardo","Vedic Lab","Knya","Cello","Comet","Secret Alchemist","EUME","Svaraa","Salad Days","Nailinit","Replyall","Frido","À la mode","Aiza","KameroAI","The Indus Valley","Wonderla"];
 
-// ── Org shape: label + horizontal bar (no overflow issues) ──
-function OrgShape({type}) {
-  const isD = type==="diamond";
-  const treeBars = [
-    {l:"C-Suite",          p:10},{l:"VP / Directors",   p:22},
-    {l:"Project Managers", p:38},{l:"Tech Leads",       p:58},
-    {l:"Mid Engineers",    p:78},{l:"Junior Engineers", p:100},
-  ];
-  const diamondBars = [
-    {l:"Leadership",         p:12, hi:false},
-    {l:"Consulting + Sol.",  p:46, hi:false},
-    {l:"Outcome Mgrs/CSMs",  p:96, hi:true},
-    {l:"Consulting + Sol.",  p:46, hi:false},
-    {l:"AI Engineers",       p:18, hi:false},
-  ];
-  const bars = isD ? diamondBars : treeBars;
-  return (
-    <div style={{background:C.card,border:`1px solid ${isD?C.crimsonB:C.border}`,padding:20,display:"flex",flexDirection:"column",gap:0}}>
-      <div style={{fontWeight:700,fontSize:12,color:isD?C.crimson:C.dim,marginBottom:16,textAlign:"center",letterSpacing:"0.05em"}}>
-        {isD?"💎  devx  (Diamond-Shaped)":"🌳  Traditional  (Tree-Shaped)"}
-      </div>
-      {bars.map((b,i)=>(
-        <div key={i} style={{display:"flex",alignItems:"center",gap:8,marginBottom:5}}>
-          <div style={{width:110,textAlign:"right",fontSize:10,color:b.hi?C.crimson:C.muted,fontWeight:b.hi?700:400,flexShrink:0,whiteSpace:"nowrap"}}>{b.l}</div>
-          <div style={{flex:1,height:18,background:C.faint,position:"relative"}}>
-            <div style={{
-              position:"absolute",left:0,top:0,bottom:0,
-              width:`${b.p}%`,
-              background:isD?(b.hi?C.crimson:"#220a0e"):`rgba(255,255,255,${0.05+i*0.05})`,
-              border:b.hi?`1px solid ${C.crimson}`:isD?`1px solid #3a0a10`:"none",
-            }}/>
-          </div>
-          <div style={{width:28,fontSize:10,color:b.hi?C.crimson:C.dim,fontWeight:700,textAlign:"right",flexShrink:0}}>{b.p}%</div>
-        </div>
-      ))}
-      <div style={{marginTop:14,textAlign:"center",fontSize:11,color:C.muted,borderTop:`1px solid ${C.border}`,paddingTop:12}}>
-        {isD
-          ? <>RPE target <strong style={{color:C.crimson}}>₹42L (FY27)</strong> · Gross margin <strong style={{color:C.crimson}}>52%+</strong></>
-          : <>RPE <strong>₹15–22L</strong> · Gross margin <strong>12–20%</strong></>}
-      </div>
-    </div>
-  );
+function chk(items, icon="›", color="var(--cr)") {
+  return `<div class="chk">${items.map(t=>`<div class="chk-item"><span class="chk-icon" style="color:${color}">${icon}</span><span class="chk-text">${t}</span></div>`).join("")}</div>`;
 }
 
-const BrandName = ({size}) => (
-  <span style={{fontWeight:700,fontSize:size||15,color:C.crimson,letterSpacing:"-0.02em"}}>devx AI labs</span>
-);
+const content = [
+// 0 COVER
+`<div style="display:flex;flex-direction:column;justify-content:center;min-height:500px">
+  <div style="margin-bottom:20px"><span style="font-size:10px;font-weight:600;letter-spacing:0.2em;color:var(--cr)">CONFIDENTIAL · INVESTOR PRESENTATION · 2026</span></div>
+  <div style="font-size:52px;font-weight:700;line-height:1.05;margin-bottom:16px;letter-spacing:-0.03em">The <span class="cr">AI-native</span> execution<br>consulting company<br>built for the next decade.</div>
+  <p class="sub" style="text-align:center;max-width:560px;margin-left:auto;margin-right:auto">Rebuilding execution consulting from first principles — fewer engineers, more orchestrators, AI in every layer. Profitable. 3× YoY.</p>
+  <div class="tags"><span class="tag">AWS Advanced Consulting Partner</span><span class="tag">Medusa Partner</span><span class="tag">Profitable from Day 1</span></div>
+  <div class="grid4">
+    <div class="stat"><div class="stat-label">FY25 REVENUE</div><div class="stat-val" style="color:var(--muted)">₹5.61Cr</div><div class="stat-sub">Base year actuals</div></div>
+    <div class="stat"><div class="stat-label">FY26 REVENUE</div><div class="stat-val">₹16.86Cr</div><div class="stat-sub">3× YoY growth</div></div>
+    <div class="stat"><div class="stat-label">FY26 PBT</div><div class="stat-val" style="color:var(--cr)">₹6.24Cr</div><div class="stat-sub">37% net margin</div></div>
+    <div class="stat"><div class="stat-label">FY27 TARGET</div><div class="stat-val" style="color:var(--cr)">₹63.5Cr</div><div class="stat-sub">ARR → ₹110Cr exit</div></div>
+  </div>
+  <div style="margin-top:12px;color:var(--dim);font-size:10px;letter-spacing:0.05em">* Projections at ₹92/USD spot rate, Apr 2026</div>
+</div>`,
 
-export default function App() {
-  const [s, setS] = useState(0);
-  const n = SLIDES.length;
-  const go = d => setS(p=>Math.max(0,Math.min(n-1,p+d)));
-  const font = "'Space Grotesk',-apple-system,sans-serif";
+// 1 PROBLEM
+`<span class="sl">THE PROBLEM</span>
+<h2>Traditional IT execution<br>hasn't been disrupted — yet.</h2>
+<p class="sub">A $1.4Tn industry still running on staffing ratios from 2005. Technology is getting commoditised. AI breaks every assumption this model was built on.</p>
+<div class="grid2" style="margin-bottom:20px">
+  ${[["🌳","Tree-shaped orgs","Thin leadership, massive junior-engineer base. Revenue per employee: ₹15–22L. Margin compresses as you scale. Attrition kills delivery continuity."],["⏳","Billed by hours, not outcomes","Clients pay for presence, not results. Change requests are a revenue model. No alignment between what's billed and business metrics."],["🤖","AI is an afterthought","Incumbents bolt AI on as a separate team. Core delivery is unchanged. Engineers still take 10 days for what AI does in 2."],["📉","Margin compresses at scale","Adding headcount to grow revenue kills margin. The model rewards volume, not intelligence. Never designed to leverage multipliers."]].map(([i,t,d])=>`<div class="card"><div style="font-size:22px;margin-bottom:8px">${i}</div><div style="font-weight:700;font-size:14px;margin-bottom:8px">${t}</div><p class="mu" style="font-size:13px;line-height:1.7;margin:0">${d}</p></div>`).join("")}
+</div>
+<div class="alert"><p class="alert-text"><strong>The inflection:</strong> AI coding agents and LLM orchestration mean one great engineer + AI delivers what five average engineers used to. The company that internalises this structurally wins the decade.</p></div>`,
 
-  useEffect(()=>{
-    const l=document.createElement("link");
-    l.rel="stylesheet"; l.href=FONT_URL;
-    document.head.appendChild(l);
-  },[]);
+// 2 OUR BET
+`<span class="sl">OUR BET</span>
+<h2>Outcomes over technology.<br><span class="cr">Technology will be commoditised.</span></h2>
+<p class="sub">Technology keeps getting cheaper and more accessible. The moat is never the stack — it's the ability to translate business intent into outcomes at speed. devx AI labs is built around this: an execution consulting company where AI amplifies every layer, from strategy to delivery.</p>
+<div class="grid3" style="margin-bottom:24px">
+  ${[["AI MULTIPLIER","3–5×","Output per devx AI labs engineer vs. non-AI team"],["FY26 GROSS MARGIN","52%","Structural — held across the full year"],["REVENUE GROWTH","3×","₹5.61Cr → ₹16.86Cr, FY25 to FY26"]].map(([l,v,d])=>`<div class="card-cr" style="text-align:center"><div style="color:var(--muted);font-size:10px;font-weight:600;letter-spacing:0.12em;margin-bottom:8px">${l}</div><div style="font-size:36px;font-weight:700;color:var(--cr);margin-bottom:8px">${v}</div><div style="color:var(--muted);font-size:12px">${d}</div></div>`).join("")}
+</div>
+<div class="card" style="padding:24px">
+  <div class="section-title">OLD MODEL vs. DEVX AI LABS</div>
+  <div class="grid2">
+    <div><div style="color:var(--dim);font-size:11px;font-weight:600;letter-spacing:0.1em;margin-bottom:10px">TRADITIONAL IT SERVICES</div>${chk(["Revenue scales 1:1 with headcount","Margin compresses as you add people","AI is a product feature, not an operating model","Clients pay for hours and presence"],"✕","var(--dim)")}</div>
+    <div><div style="color:var(--cr);font-size:11px;font-weight:600;letter-spacing:0.1em;margin-bottom:10px">DEVX AI LABS</div>${chk(["Revenue scales faster than headcount","Margin improves as AI tooling compounds","AI is the delivery engine — non-negotiable","Clients pay for outcomes, milestones, ARR"],"✓","var(--cr)")}</div>
+  </div>
+</div>`,
 
-  return (
-    <div style={{background:C.bg,minHeight:"100vh",color:C.text,fontFamily:font}}>
-      {/* Nav */}
-      <div style={{background:C.card,borderBottom:`1px solid ${C.border}`,padding:"10px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <BrandName/>
-          <span style={{color:C.dim,fontSize:11,letterSpacing:"0.05em"}}>· INVESTOR DECK · 2026</span>
-        </div>
-        <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
-          {SLIDES.map((sl,i)=>(
-            <button key={sl} onClick={()=>setS(i)} style={{
-              padding:"4px 10px",fontSize:10,fontWeight:600,border:"none",cursor:"pointer",borderRadius:2,letterSpacing:"0.05em",fontFamily:font,
-              background:s===i?C.crimson:"transparent",color:s===i?"#fff":C.dim}}>
-              {sl}
-            </button>
-          ))}
-        </div>
-      </div>
+// 3 WHAT WE DO
+`<span class="sl">WHAT WE DO</span>
+<h2>Enterprise CX transformation<br><span class="cr">across four pillars.</span></h2>
+<p class="sub">We help mid-to-large enterprises transform customer experiences using AI — focused on retail, e-commerce, and consumer brands globally.</p>
+<div class="grid2" style="margin-bottom:18px">
+  ${[["💬","Customer Interactions",["Conversational AI & LLM-powered support","Agent productivity and CS automation tooling","Voice, chat, and post-order experience layers"]],["📣","Marketing Automation",["AI-led CRM, loyalty & hyper-personalisation","WebEngage, CleverTap, CDPs — strategy to execution","Audience intelligence & campaign automation"]],["⚙️","AI-Ops",["Agentic workflows across operations layers","Returns, OMS, WMS reconciliation & automation","AI-powered monitoring, alerting & resolution"]],["🏗️","Enterprise Architecture",["Headless commerce & microservices modernisation","Cloud migrations — AWS-first, lift-and-shift","Deep integrations: SAP, OMS, WMS, ERP"]]].map(([i,l,items])=>`<div class="card-l"><div style="font-size:22px;margin-bottom:8px">${i}</div><div style="font-weight:700;font-size:13px;color:var(--cr);margin-bottom:10px;letter-spacing:0.05em">${l}</div>${items.map(it=>`<div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:var(--cr);font-size:11px;margin-top:1px">›</span><span style="color:var(--muted);font-size:12px;line-height:1.5">${it}</span></div>`).join("")}</div>`).join("")}
+</div>
+<div class="grid2">
+  ${[["☁️","AWS Advanced Consulting Partner","Cloud architecture & migrations — primary infrastructure play"],["🔗","Medusa + Fynd Partners","Headless commerce, OMS & retail stack partnerships"]].map(([i,l,s])=>`<div class="card2" style="display:flex;gap:10px;align-items:center"><span style="font-size:20px">${i}</span><div><div style="font-weight:700;font-size:12px">${l}</div><div style="color:var(--muted);font-size:11px;margin-top:2px">${s}</div></div></div>`).join("")}
+</div>`,
 
-      <div style={{flex:1,padding:"40px 48px",maxWidth:940,margin:"0 auto",width:"100%",boxSizing:"border-box"}}>
+// 4 DIAMOND
+`<span class="sl">THE MODEL</span>
+<h2>Diamond-shaped.<br>Not tree-shaped.</h2>
+<p class="sub">Traditional IT firms stack junior engineers at the base. devx AI labs inverts the ratio — the widest layer is intellectual capital. Engineers are fewer, AI-multiplied, structurally higher-value.</p>
+<div class="grid2" style="margin-bottom:20px">
+  <div class="org-container" style="border:1px solid var(--border)">
+    <div class="org-title" style="color:var(--dim)">🌳 Traditional (Tree-Shaped)</div>
+    ${[["C-Suite",10],["VP / Directors",22],["Project Managers",38],["Tech Leads",58],["Mid Engineers",78],["Junior Engineers",100]].map(([l,p])=>`<div class="bar-row"><div class="bar-label">${l}</div><div class="bar-track"><div class="bar-fill" style="width:${p}%;background:rgba(255,255,255,${0.05+p*0.003})"></div></div><div class="bar-pct">${p}%</div></div>`).join("")}
+    <div style="margin-top:14px;text-align:center;font-size:11px;color:var(--muted);border-top:1px solid var(--border);padding-top:12px">RPE <strong>₹15–22L</strong> · Gross margin <strong>12–20%</strong></div>
+  </div>
+  <div class="org-container" style="border:1px solid var(--crb)">
+    <div class="org-title cr">💎 devx AI labs (Diamond-Shaped)</div>
+    ${[["Leadership",12,false],["Consulting + Sol.",46,false],["Outcome Mgrs / CSMs",96,true],["Consulting + Sol.",46,false],["AI Engineers",18,false]].map(([l,p,hi])=>`<div class="bar-row"><div class="bar-label" style="color:${hi?"var(--cr)":"var(--muted)"};font-weight:${hi?700:400}">${l}</div><div class="bar-track"><div class="bar-fill" style="width:${p}%;background:${hi?"var(--cr)":"#220a0e"};border:${hi?"1px solid var(--cr)":"1px solid #3a0a10"}"></div></div><div class="bar-pct" style="color:${hi?"var(--cr)":"var(--dim)"}">${p}%</div></div>`).join("")}
+    <div style="margin-top:14px;text-align:center;font-size:11px;color:var(--muted);border-top:1px solid var(--border);padding-top:12px">RPE target <strong style="color:var(--cr)">₹42L (FY27)</strong> · Gross margin <strong style="color:var(--cr)">52%+</strong></div>
+  </div>
+</div>
+<div class="grid3">
+  ${[["⚡","Fewer builders","Each AI-native engineer ships 3–5× the output of a traditional peer."],["🔄","Wider orchestration","Outcome Managers translate client intent into precise delivery briefs. No lost-in-translation margin loss."],["📈","Margin compounds","As AI tooling improves, delivery cost drops. Margin expands without adding headcount."]].map(([i,t,d])=>`<div class="card" style="border-top:2px solid var(--cr)"><div style="font-size:20px;margin-bottom:8px">${i}</div><div style="font-weight:700;font-size:12px;color:var(--cr);margin-bottom:6px;letter-spacing:0.05em">${t}</div><p style="color:var(--muted);font-size:12px;margin:0;line-height:1.6">${d}</p></div>`).join("")}
+</div>`,
 
-        {/* COVER */}
-        {s===0&&(
-          <div style={{display:"flex",flexDirection:"column",justifyContent:"center",minHeight:500}}>
-            <div style={{marginBottom:20}}>
-              <span style={{fontSize:10,fontWeight:600,letterSpacing:"0.2em",color:C.crimson}}>CONFIDENTIAL · INVESTOR PRESENTATION · 2026</span>
-            </div>
-            <div style={{fontSize:52,fontWeight:700,lineHeight:1.05,marginBottom:16,letterSpacing:"-0.03em"}}>
-              The <span style={{color:C.crimson}}>AI-native</span> services<br/>company built for<br/>the next decade.
-            </div>
-            <p style={{color:C.muted,fontSize:15,maxWidth:500,lineHeight:1.8,margin:"0 0 32px"}}>
-              Rebuilding IT services from first principles — fewer engineers, more orchestrators, AI in every layer. Profitable. 3× YoY.
-            </p>
-            <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:36}}>
-              {["AWS Advanced Consulting Partner","Medusa Partner","Profitable from Day 1"].map(t=>(
-                <Tag key={t} label={t} color={C.muted}/>
-              ))}
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
-              <Stat label="FY25 REVENUE"  value="₹5.61Cr"  sub="Base year actuals" color={C.muted}/>
-              <Stat label="FY26 REVENUE"  value="₹16.86Cr" sub="3× YoY growth"/>
-              <Stat label="FY26 PBT"      value="₹6.24Cr"  sub="37% net margin" color={C.crimson}/>
-              <Stat label="FY27 TARGET"   value="₹63.5Cr"  sub="ARR → ₹110Cr exit" color={C.crimson}/>
-            </div>
-            <div style={{marginTop:12,color:C.dim,fontSize:10,letterSpacing:"0.05em"}}>* Projections at ₹92/USD spot rate, Apr 2026</div>
-          </div>
-        )}
+// 5 OUTCOME MANAGER
+`<span class="sl">THE ORCHESTRATION LAYER</span>
+<h2>The Outcome Manager:<br><span class="cr">CEO of the engagement.</span></h2>
+<p class="sub">Not a PM. Not a BA. A consulting-flavored orchestrator between client business intent and engineering delivery — AI handles the admin so they focus on judgment.</p>
+<div class="outcome-grid">
+  <div class="card-l" style="border:1px solid var(--crb)">
+    <div style="font-weight:700;font-size:12px;color:var(--cr);margin-bottom:14px;letter-spacing:0.08em">WHAT THEY DO</div>
+    ${chk(["Translate client business problems into executable delivery plans","Write user stories, acceptance criteria, and sprint goals with AI","Own scope, timeline, quality, and client satisfaction end-to-end","Coordinate between Customer Success, AI Engineering, and client","Generate progress decks, risk registers, decision logs via AI","Act as the CEO of the engagement — not an order-taker"],"◆")}
+  </div>
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div class="card2"><div style="font-weight:700;font-size:13px;margin-bottom:10px">Why this role is the moat</div><p style="color:var(--muted);font-size:13px;margin:0;line-height:1.7">Most IT firms lose margin at the handoff between client and delivery. The Outcome Manager eliminates that gap. AI automates their documentation — they spend time on judgment, not admin.</p></div>
+    <div class="metric-box"><div style="font-weight:700;font-size:12px;color:var(--cr);letter-spacing:0.1em;margin-bottom:12px">THE RATIO THAT MATTERS</div><div class="grid2"><div style="text-align:center"><div style="font-size:24px;font-weight:700;color:var(--cr)">1.5:1</div><div style="color:var(--muted);font-size:11px;margin-top:4px">Orchestrators per Engineer</div></div><div style="text-align:center"><div style="font-size:24px;font-weight:700;color:var(--cr)">~80%</div><div style="color:var(--muted);font-size:11px;margin-top:4px">AI-assisted documentation</div></div></div></div>
+    <div class="card2"><div style="font-weight:700;font-size:13px;margin-bottom:10px">The difference</div><p style="color:var(--muted);font-size:13px;margin:0;line-height:1.7">Traditional firms have PMs who track tickets. devx AI labs Outcome Managers own business outcomes — they know the client's P&L, anticipate scope risks, and shape what engineering builds before a sprint starts.</p></div>
+  </div>
+</div>`,
 
-        {/* PROBLEM */}
-        {s===1&&(
-          <div>
-            <SL text="THE PROBLEM"/>
-            <H>Traditional IT services<br/>haven't been disrupted — yet.</H>
-            <P>A $1.4Tn industry still running on staffing ratios from 2005. AI breaks every assumption this model was built on.</P>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:20}}>
-              {[
-                {icon:"🌳",title:"Tree-shaped orgs",desc:"Thin leadership, massive junior-engineer base. Revenue per employee: ₹15–22L. Margin compresses as you scale. Attrition kills delivery continuity."},
-                {icon:"⏳",title:"Billed by hours, not outcomes",desc:"Clients pay for presence, not results. Change requests are a revenue model. No alignment between what's billed and business metrics."},
-                {icon:"🤖",title:"AI is an afterthought",desc:"Incumbents bolt AI on as a separate team. Core delivery is unchanged. Engineers still take 10 days for what AI does in 2."},
-                {icon:"📉",title:"Margin compresses at scale",desc:"Adding headcount to grow revenue kills margin. The model rewards volume, not intelligence. Never designed to leverage multipliers."},
-              ].map(v=>(
-                <div key={v.title} style={{background:C.card,border:`1px solid ${C.border}`,padding:20}}>
-                  <div style={{fontSize:22,marginBottom:8}}>{v.icon}</div>
-                  <div style={{fontWeight:700,fontSize:14,marginBottom:8}}>{v.title}</div>
-                  <p style={{color:C.muted,fontSize:13,margin:0,lineHeight:1.7}}>{v.desc}</p>
-                </div>
-              ))}
-            </div>
-            <div style={{background:C.crimsonD,border:`1px solid ${C.crimsonB}`,padding:16}}>
-              <p style={{color:"#ff8090",fontSize:13,margin:0,lineHeight:1.7}}>
-                <strong>The inflection:</strong> AI coding agents and LLM orchestration mean one great engineer + AI delivers what five average engineers used to. The company that internalises this structurally wins the decade.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* OUR BET */}
-        {s===2&&(
-          <div>
-            <SL text="OUR BET"/>
-            <H>AI collapses the cost of building.<br/><span style={{color:C.crimson}}>We capture the margin.</span></H>
-            <P>devx AI labs is built around a single insight: AI amplifies engineering output 3–5×. Fewer builders, more orchestrators, AI as the delivery engine — structurally, not as an add-on.</P>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:24}}>
-              {[
-                {label:"AI MULTIPLIER",      value:"3–5×",  desc:"Output per devx AI labs engineer vs. non-AI team"},
-                {label:"FY26 GROSS MARGIN",  value:"52%",   desc:"Structural — held across the full year"},
-                {label:"REVENUE GROWTH",     value:"3×",    desc:"₹5.61Cr → ₹16.86Cr, FY25 to FY26"},
-              ].map(v=>(
-                <div key={v.label} style={{background:C.card,border:`1px solid ${C.crimsonB}`,padding:20,textAlign:"center",borderTop:`3px solid ${C.crimson}`}}>
-                  <div style={{color:C.muted,fontSize:10,fontWeight:600,letterSpacing:"0.12em",marginBottom:8}}>{v.label}</div>
-                  <div style={{fontSize:36,fontWeight:700,color:C.crimson,marginBottom:8}}>{v.value}</div>
-                  <div style={{color:C.muted,fontSize:12}}>{v.desc}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{background:C.card,border:`1px solid ${C.border}`,padding:24}}>
-              <div style={{fontWeight:700,fontSize:12,marginBottom:16,letterSpacing:"0.05em"}}>OLD MODEL vs. DEVX AI LABS</div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
-                <div>
-                  <div style={{color:C.dim,fontSize:11,fontWeight:600,letterSpacing:"0.1em",marginBottom:10}}>TRADITIONAL IT SERVICES</div>
-                  <Chk items={["Revenue scales 1:1 with headcount","Margin compresses as you add people","AI is a product feature, not an operating model","Clients pay for hours and presence"]} color={C.dim} icon="✕"/>
-                </div>
-                <div>
-                  <div style={{color:C.crimson,fontSize:11,fontWeight:600,letterSpacing:"0.1em",marginBottom:10}}>DEVX AI LABS</div>
-                  <Chk items={["Revenue scales faster than headcount","Margin improves as AI tooling compounds","AI is the delivery engine — non-negotiable","Clients pay for outcomes, milestones, ARR"]} color={C.crimson} icon="✓"/>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* WHAT WE DO */}
-        {s===3&&(
-          <div>
-            <SL text="WHAT WE DO"/>
-            <H>Enterprise CX transformation<br/><span style={{color:C.crimson}}>across four pillars.</span></H>
-            <P>We help mid-to-large enterprises transform customer experiences using AI — focused on retail, e-commerce, and consumer brands globally.</P>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:18}}>
-              {[
-                {icon:"💬",label:"Customer Interactions",items:["Conversational AI & LLM-powered support","Agent productivity and CS automation tooling","Voice, chat, and post-order experience layers"]},
-                {icon:"📣",label:"Marketing Automation",items:["AI-led CRM, loyalty & hyper-personalisation","WebEngage, CleverTap, CDPs — strategy to execution","Audience intelligence & campaign automation"]},
-                {icon:"⚙️",label:"AI-Ops",items:["Agentic workflows across operations layers","Returns, OMS, WMS reconciliation & automation","AI-powered monitoring, alerting & resolution"]},
-                {icon:"🏗️",label:"Enterprise Architecture",items:["Headless commerce & microservices modernisation","Cloud migrations — AWS-first, lift-and-shift","Deep integrations: SAP, OMS, WMS, ERP"]},
-              ].map(p=>(
-                <div key={p.label} style={{background:C.card,border:`1px solid ${C.border}`,padding:20,borderLeft:`3px solid ${C.crimson}`}}>
-                  <div style={{fontSize:22,marginBottom:8}}>{p.icon}</div>
-                  <div style={{fontWeight:700,fontSize:13,color:C.crimson,marginBottom:10,letterSpacing:"0.05em"}}>{p.label}</div>
-                  {p.items.map(it=>(
-                    <div key={it} style={{display:"flex",gap:8,marginBottom:6}}>
-                      <span style={{color:C.crimson,fontSize:11,marginTop:1}}>›</span>
-                      <span style={{color:C.muted,fontSize:12,lineHeight:1.5}}>{it}</span>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-              {[
-                {label:"AWS Advanced Consulting Partner",icon:"☁️",sub:"Cloud architecture & migrations — primary infrastructure play"},
-                {label:"Medusa + Fynd Partners",icon:"🔗",sub:"Headless commerce, OMS & retail stack partnerships"},
-              ].map(p=>(
-                <div key={p.label} style={{background:C.card2,border:`1px solid ${C.border}`,padding:14,display:"flex",gap:10,alignItems:"center"}}>
-                  <span style={{fontSize:20}}>{p.icon}</span>
-                  <div>
-                    <div style={{fontWeight:700,fontSize:12}}>{p.label}</div>
-                    <div style={{color:C.muted,fontSize:11,marginTop:2}}>{p.sub}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* DIAMOND MODEL */}
-        {s===4&&(
-          <div>
-            <SL text="THE MODEL"/>
-            <H>Diamond-shaped.<br/>Not tree-shaped.</H>
-            <P>Traditional IT firms stack junior engineers at the base. devx AI labs inverts the ratio — the widest layer is intellectual capital. Engineers are fewer, AI-multiplied, structurally higher-value.</P>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:20}}>
-              <OrgShape type="tree"/>
-              <OrgShape type="diamond"/>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
-              {[
-                {icon:"⚡",title:"Fewer builders",desc:"Each AI-native engineer ships 3–5× the output of a traditional peer."},
-                {icon:"🔄",title:"Wider orchestration",desc:"Outcome Managers translate client intent into precise delivery briefs. No lost-in-translation margin loss."},
-                {icon:"📈",title:"Margin compounds",desc:"As AI tooling improves, delivery cost drops. Margin expands without adding headcount."},
-              ].map(v=>(
-                <div key={v.title} style={{background:C.card,border:`1px solid ${C.border}`,padding:18,borderTop:`2px solid ${C.crimson}`}}>
-                  <div style={{fontSize:20,marginBottom:8}}>{v.icon}</div>
-                  <div style={{fontWeight:700,fontSize:12,color:C.crimson,marginBottom:6,letterSpacing:"0.05em"}}>{v.title}</div>
-                  <p style={{color:C.muted,fontSize:12,margin:0,lineHeight:1.6}}>{v.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* OUTCOME MANAGER */}
-        {s===5&&(
-          <div>
-            <SL text="THE ORCHESTRATION LAYER"/>
-            <H>The Outcome Manager:<br/><span style={{color:C.crimson}}>CEO of the engagement.</span></H>
-            <P>Not a PM. Not a BA. A consulting-flavored orchestrator between client business intent and engineering delivery — AI handles the admin so they focus on judgment.</P>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-              <div style={{background:C.card,border:`1px solid ${C.crimsonB}`,padding:22,borderLeft:`3px solid ${C.crimson}`}}>
-                <div style={{fontWeight:700,fontSize:12,color:C.crimson,marginBottom:14,letterSpacing:"0.08em"}}>WHAT THEY DO</div>
-                <Chk items={[
-                  "Translate client business problems into executable delivery plans",
-                  "Write user stories, acceptance criteria, and sprint goals with AI",
-                  "Own scope, timeline, quality, and client satisfaction end-to-end",
-                  "Coordinate between Customer Success, AI Engineering, and client",
-                  "Generate progress decks, risk registers, decision logs via AI",
-                  "Act as the CEO of the engagement — not an order-taker",
-                ]} color={C.crimson} icon="◆"/>
-              </div>
-              <div style={{display:"flex",flexDirection:"column",gap:12}}>
-                <div style={{background:C.card2,border:`1px solid ${C.border}`,padding:18}}>
-                  <div style={{fontWeight:700,fontSize:13,marginBottom:10}}>Why this role is the moat</div>
-                  <p style={{color:C.muted,fontSize:13,margin:0,lineHeight:1.7}}>
-                    Most IT services firms lose margin at the handoff between client and delivery. The Outcome Manager eliminates that gap. AI automates their documentation — they spend time on judgment, not admin.
-                  </p>
-                </div>
-                <div style={{background:C.crimsonD,border:`1px solid ${C.crimsonB}`,padding:18}}>
-                  <div style={{fontWeight:700,fontSize:12,color:C.crimson,letterSpacing:"0.1em",marginBottom:12}}>THE RATIO THAT MATTERS</div>
-                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-                    {[
-                      {label:"Orchestrators per Engineer",value:"1.5:1",sub:"More orchestrators than builders"},
-                      {label:"AI-assisted documentation",value:"~80%",sub:"Less admin, more judgment"},
-                    ].map(v=>(
-                      <div key={v.label} style={{textAlign:"center"}}>
-                        <div style={{fontSize:24,fontWeight:700,color:C.crimson}}>{v.value}</div>
-                        <div style={{color:C.muted,fontSize:11,marginTop:4}}>{v.sub}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div style={{background:C.card2,border:`1px solid ${C.border}`,padding:18}}>
-                  <div style={{fontWeight:700,fontSize:13,marginBottom:10}}>The difference</div>
-                  <p style={{color:C.muted,fontSize:13,margin:0,lineHeight:1.7}}>
-                    Traditional IT services have PMs who track tickets. devx AI labs Outcome Managers own business outcomes — they know the client's P&L, anticipate scope risks, and shape what engineering builds before a sprint starts.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* NORTH STAR */}
-        {s===6&&(
-          <div>
-            <SL text="NORTH STAR METRIC"/>
-            <H>Revenue per employee.<br/><span style={{color:C.crimson}}>Our only vanity-free metric.</span></H>
-            <P>We don't optimise for headcount. RPE is the cleanest signal of AI leverage, delivery quality, and org efficiency — all in one number. 80 avg. employees, ₹16.86Cr FY26 revenue.</P>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:20}}>
-              <div style={{background:C.card,border:`1px solid ${C.border}`,padding:22}}>
-                <div style={{fontWeight:700,fontSize:11,color:C.dim,letterSpacing:"0.1em",marginBottom:16}}>RPE COMPARISON (₹L / EMPLOYEE / YEAR)</div>
-                {[
-                  {label:"Large Indian IT (TCS, Wipro)",rpe:"₹15L",pct:22,hi:false},
-                  {label:"Mid-tier IT services",         rpe:"₹22L",pct:32,hi:false},
-                  {label:"devx AI labs FY26 (80 emp.)",  rpe:"₹21.1L",pct:31,hi:true},
-                  {label:"devx AI labs FY27 (150 emp.)", rpe:"₹42.3L",pct:62,hi:true},
-                  {label:"devx AI labs FY28 target",     rpe:"₹74L+",  pct:100,hi:true},
-                ].map((row,i)=>(
-                  <div key={i} style={{marginBottom:12}}>
-                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                      <span style={{color:row.hi?C.text:C.dim,fontSize:12,fontWeight:row.hi?700:400}}>{row.label}</span>
-                      <span style={{color:row.hi?C.crimson:C.dim,fontWeight:700,fontSize:13}}>{row.rpe}</span>
-                    </div>
-                    <div style={{height:6,background:C.faint}}>
-                      <div style={{height:"100%",width:`${row.pct}%`,background:row.hi?C.crimson:C.border}}/>
-                    </div>
-                  </div>
-                ))}
-                <div style={{marginTop:10,fontSize:11,color:C.dim}}>FY26 at mid-tier parity today. The gap widens fast as AI leverage compounds.</div>
-              </div>
-              <div style={{display:"flex",flexDirection:"column",gap:12}}>
-                <div style={{background:C.card2,border:`1px solid ${C.border}`,padding:18}}>
-                  <div style={{fontWeight:700,fontSize:12,color:C.crimson,marginBottom:10,letterSpacing:"0.08em"}}>WHY RPE IS THE RIGHT METRIC</div>
-                  <Chk items={[
-                    "Captures AI leverage — more adoption = higher RPE",
-                    "Exposes org bloat before it hits the P&L",
-                    "Aligns incentives: grow revenue, not headcount",
-                    "Metric top-quartile consulting firms benchmark against",
-                  ]}/>
-                </div>
-                <div style={{background:C.card2,border:`1px solid ${C.border}`,padding:18}}>
-                  <div style={{fontWeight:700,fontSize:13,marginBottom:14}}>RPE TRAJECTORY</div>
-                  {[
-                    {year:"FY26 actual", rpe:"₹21.1L",note:"80 avg. employees · profitable baseline"},
-                    {year:"FY27 target", rpe:"₹42.3L",note:"150 people · GTM + AI tooling"},
-                    {year:"FY28 target", rpe:"₹74L+",  note:"AI leverage compounding at scale"},
-                  ].map((v,i)=>(
-                    <div key={v.year} style={{display:"flex",justifyContent:"space-between",alignItems:"center",
-                      marginBottom:10,paddingBottom:10,borderBottom:`1px solid ${C.faint}`}}>
-                      <div>
-                        <div style={{fontWeight:700,fontSize:13,color:i===0?C.text:C.crimson}}>{v.year}</div>
-                        <div style={{color:C.muted,fontSize:11,marginTop:2}}>{v.note}</div>
-                      </div>
-                      <div style={{fontSize:20,fontWeight:700,color:i===0?C.text:C.crimson}}>{v.rpe}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TRACTION */}
-        {s===7&&(
-          <div>
-            <SL text="TRACTION"/>
-            <H>3× revenue growth.<br/><span style={{color:C.crimson}}>Profitable. A strong client portfolio.</span></H>
-            <P>Built on strong fundamentals. All revenue is recurring from FY26. Zero client churn. Brands across retail, beauty, fashion, F&B, and consumer goods.</P>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20}}>
-              <Stat label="FY26 REVENUE"      value="₹16.86Cr" sub="3× FY25"/>
-              <Stat label="FY26 GROSS MARGIN" value="52%"      sub="P&L actual" color={C.crimson}/>
-              <Stat label="FY26 PBT"          value="₹6.24Cr" sub="37% net margin" color={C.crimson}/>
-            </div>
-            <div style={{background:C.card,border:`1px solid ${C.border}`,padding:20,marginBottom:14}}>
-              <div style={{fontWeight:700,fontSize:12,letterSpacing:"0.08em",marginBottom:12}}>CLIENT PORTFOLIO</div>
-              <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-                {CLIENTS.map(c=>(
-                  <span key={c} style={{fontSize:11,padding:"4px 10px",border:`1px solid ${C.border}`,color:C.muted,background:C.card2}}>{c}</span>
-                ))}
-              </div>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-              {[
-                {label:"INTERNATIONAL REVENUE",value:"~10–15%",sub:"Growing organically — no dedicated sales hire"},
-                {label:"AVG TEAM SIZE",value:"80 employees",sub:"Avg. over last 12 months"},
-              ].map(v=>(
-                <div key={v.label} style={{background:C.card2,border:`1px solid ${C.border}`,padding:14,borderLeft:`2px solid ${C.crimson}`}}>
-                  <div style={{color:C.dim,fontSize:10,fontWeight:600,letterSpacing:"0.1em",marginBottom:6}}>{v.label}</div>
-                  <div style={{fontSize:16,fontWeight:700,color:C.crimson,marginBottom:4}}>{v.value}</div>
-                  <div style={{color:C.muted,fontSize:11}}>{v.sub}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* FINANCIALS */}
-        {s===8&&(
-          <div>
-            <SL text="FINANCIALS"/>
-            <H>Path to ₹460Cr.<br/><span style={{color:C.crimson}}>Built on recurring revenue.</span></H>
-            <P>FY27 is the inflection year. GTM in Western markets, ₹110Cr ARR by exit rate, ₹23Cr PBT. FY28–29 are the leverage plays. All projections at ₹92/USD.</P>
-            <div style={{background:C.card,border:`1px solid ${C.border}`,padding:20,marginBottom:14}}>
-              <div style={{fontWeight:700,fontSize:12,letterSpacing:"0.08em",marginBottom:16}}>REVENUE (₹CR) — ACTUALS & PROJECTIONS</div>
-              <ResponsiveContainer width="100%" height={180}>
-                <BarChart data={projData} margin={{top:0,right:0,left:0,bottom:0}}>
-                  <XAxis dataKey="year" tick={{fontSize:11,fill:C.muted,fontFamily:font}} axisLine={false} tickLine={false}/>
-                  <YAxis tick={{fontSize:11,fill:C.muted,fontFamily:font}} axisLine={false} tickLine={false} tickFormatter={v=>`₹${v}Cr`}/>
-                  <Tooltip contentStyle={{background:C.card2,border:`1px solid ${C.border}`,fontSize:12,fontFamily:font}} formatter={v=>[`₹${v}Cr`,"Revenue"]}/>
-                  <Bar dataKey="rev" radius={[3,3,0,0]}>
-                    {projData.map((d,i)=><Cell key={i} fill={d.clr}/>)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginBottom:14}}>
-              {[
-                {year:"FY25", rev:"₹5.61Cr",  note:"Actual", gm:"~42%", pbt:"—",       hi:false},
-                {year:"FY26", rev:"₹16.86Cr", note:"Actual", gm:"52%",  pbt:"₹6.24Cr", hi:false},
-                {year:"FY27E",rev:"₹63.5Cr",  note:"Target", gm:"52%+", pbt:"₹23Cr",   hi:true},
-                {year:"FY28E",rev:"₹184Cr",   note:"Target", gm:"55%+", pbt:"—",        hi:true},
-                {year:"FY29E",rev:"₹460Cr",   note:"Target", gm:"58%+", pbt:"—",        hi:true},
-              ].map(v=>(
-                <div key={v.year} style={{background:C.card2,borderTop:`2px solid ${v.hi?C.crimson:C.border}`,border:`1px solid ${C.border}`,padding:"12px 10px",textAlign:"center"}}>
-                  <div style={{fontWeight:700,fontSize:11,color:v.hi?C.crimson:C.muted,marginBottom:4,letterSpacing:"0.05em"}}>{v.year}</div>
-                  <div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:4}}>{v.rev}</div>
-                  <div style={{fontSize:10,color:C.dim,marginBottom:5}}>{v.note}</div>
-                  <div style={{fontSize:10,color:v.hi?C.crimson:C.dim}}>GM: {v.gm}</div>
-                  {v.pbt!=="—"&&<div style={{fontSize:10,color:C.crimson,marginTop:2}}>PBT: {v.pbt}</div>}
-                </div>
-              ))}
-            </div>
-            <div style={{background:C.crimsonD,border:`1px solid ${C.crimsonB}`,padding:14}}>
-              <div style={{display:"flex",gap:24,flexWrap:"wrap"}}>
-                {[
-                  {label:"FY27 ARR EXIT RATE",value:"₹110Cr"},
-                  {label:"FY27 PBT TARGET",value:"₹23Cr"},
-                  {label:"REVENUE CAGR (FY26→FY29)",value:"~128%"},
-                  {label:"GROSS MARGIN TRAJECTORY",value:"52% → 58%+"},
-                ].map(v=>(
-                  <div key={v.label} style={{flex:1,minWidth:120}}>
-                    <div style={{color:C.dim,fontSize:10,fontWeight:600,letterSpacing:"0.1em",marginBottom:4}}>{v.label}</div>
-                    <div style={{fontSize:18,fontWeight:700,color:C.crimson}}>{v.value}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* MARKET */}
-        {s===9&&(
-          <div>
-            <SL text="MARKET"/>
-            <H>A $1.4Tn market being<br/><span style={{color:C.crimson}}>repriced by AI.</span></H>
-            <P>The global IT services market grew for 30 years on one model. AI breaks every assumption. Leaders of the next decade won't be the largest — they'll be the most leveraged.</P>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:20}}>
-              {[
-                {label:"GLOBAL IT SERVICES",value:"$1.4Tn",sub:"Total addressable, 2025"},
-                {label:"AI TRANSFORMATION SERVICES",value:"$230Bn",sub:"Growing at 35% CAGR"},
-                {label:"RETAIL & E-COM TECH",value:"$60Bn",sub:"Primary vertical focus"},
-              ].map(v=>(
-                <div key={v.label} style={{background:C.card,border:`1px solid ${C.border}`,padding:22,textAlign:"center",borderTop:`2px solid ${C.crimson}`}}>
-                  <div style={{color:C.dim,fontSize:10,fontWeight:600,letterSpacing:"0.12em",marginBottom:8}}>{v.label}</div>
-                  <div style={{fontSize:30,fontWeight:700,color:C.crimson,marginBottom:8}}>{v.value}</div>
-                  <div style={{color:C.muted,fontSize:12}}>{v.sub}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-              <div style={{background:C.card,border:`1px solid ${C.border}`,padding:20}}>
-                <div style={{fontWeight:700,fontSize:12,letterSpacing:"0.08em",marginBottom:12}}>WHY WESTERN MARKETS, WHY NOW</div>
-                <Chk items={[
-                  "Western mid-market underserved — big IT is too slow and expensive",
-                  "AI-native services is a new buying category incumbents can't claim",
-                  "devx AI labs already has organic international revenue — no sales team",
-                  "AWS partnership opens enterprise doors in North America & Europe",
-                ]}/>
-              </div>
-              <div style={{background:C.card,border:`1px solid ${C.border}`,padding:20}}>
-                <div style={{fontWeight:700,fontSize:12,letterSpacing:"0.08em",marginBottom:12}}>THE COMPETITIVE WINDOW</div>
-                <Chk items={[
-                  "Large IT firms (Infosys, Wipro) too slow to restructure delivery",
-                  "Pure-play AI agencies lack enterprise delivery depth for big mandates",
-                  "Boutique firms lack org infrastructure to scale past ₹85Cr",
-                  "devx AI labs is designed for the intersection of all three from day 1",
-                ]} color={C.crimson} icon="✓"/>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* USE OF FUNDS */}
-        {s===10&&(
-          <div>
-            <SL text="USE OF FUNDS"/>
-            <H>Two bets.<br/><span style={{color:C.crimson}}>One thesis.</span></H>
-            <P>We're raising to take devx AI labs to Western markets with proper GTM infrastructure, and to build the AI research capability that becomes our long-term moat.</P>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:20}}>
-              {[
-                {icon:"🌍",label:"GTM — WESTERN MARKETS",pct:"60%",items:[
-                  "Sales and pre-sales hires in US/UK — quota-carrying from day 1",
-                  "AWS partner channel development in Western geographies",
-                  "Thought leadership and analyst relations (Gartner, Forrester)",
-                  "First 3 Western marquee client acquisitions",
-                  "Target: ₹25Cr ARR from international clients by end of FY27",
-                ]},
-                {icon:"🧠",label:"AI RESEARCH — INTERNAL MOAT",pct:"40%",items:[
-                  "Proprietary AI evaluation frameworks for delivery quality",
-                  "LLM-powered tooling: requirements gen, sprint planning, test automation",
-                  "AI IP across verticals — retail, CS, logistics, OMS automation",
-                  "Publish research: builds brand, attracts top engineering talent",
-                  "Target: 3 production-grade AI products clients pay for",
-                ]},
-              ].map(v=>(
-                <div key={v.label} style={{background:C.card,border:`1px solid ${C.crimsonB}`,padding:24,borderTop:`3px solid ${C.crimson}`}}>
-                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
-                    <span style={{fontSize:26}}>{v.icon}</span>
-                    <div>
-                      <div style={{fontWeight:700,fontSize:13,letterSpacing:"0.05em"}}>{v.label}</div>
-                      <div style={{color:C.crimson,fontWeight:700,fontSize:12,marginTop:2}}>{v.pct} of round</div>
-                    </div>
-                  </div>
-                  <Chk items={v.items} color={C.crimson} icon="◆"/>
-                </div>
-              ))}
-            </div>
-            <div style={{background:C.crimsonD,border:`1px solid ${C.crimsonB}`,padding:16}}>
-              <div style={{fontWeight:700,fontSize:12,color:C.crimson,letterSpacing:"0.08em",marginBottom:8}}>SUCCESS IN 18 MONTHS</div>
-              <div style={{display:"flex",gap:20,flexWrap:"wrap"}}>
-                {["International client base established","₹110Cr ARR at exit rate","2–3 proprietary AI products live","devx AI labs as the AI-native IT services category leader"].map(t=>(
-                  <div key={t} style={{display:"flex",gap:6,alignItems:"center"}}>
-                    <span style={{color:C.crimson}}>›</span>
-                    <span style={{color:C.muted,fontSize:13}}>{t}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* WHY NOW */}
-        {s===11&&(
-          <div>
-            <SL text="WHY NOW"/>
-            <H>The AI inflection is real.<br/><span style={{color:C.crimson}}>The window is 18 months.</span></H>
-            <P>Three forces are converging. Miss the window and incumbents will bolt AI on convincingly enough. Move now, and the category is ours to define.</P>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:20}}>
-              {[
-                {icon:"⚡",label:"AI CAPABILITY LEAP",desc:"LLMs, coding agents, and agentic frameworks have crossed enterprise-readiness. What was experimental 18 months ago is production-grade today."},
-                {icon:"💸",label:"ENTERPRISE BUYING SHIFT",desc:"CFOs are cutting IT vendor headcount costs and demanding outcome-based pricing. The traditional body-shop model is being actively de-selected."},
-                {icon:"🏆",label:"CATEGORY IS STILL OPEN",desc:"No incumbent has credibly repositioned as AI-native in delivery. First-mover in Western markets with proof-of-execution wins the decade."},
-              ].map(v=>(
-                <div key={v.label} style={{background:C.card,border:`1px solid ${C.border}`,padding:22,borderTop:`2px solid ${C.crimson}`}}>
-                  <div style={{fontSize:26,marginBottom:10}}>{v.icon}</div>
-                  <div style={{fontWeight:700,fontSize:12,color:C.crimson,marginBottom:10,letterSpacing:"0.08em"}}>{v.label}</div>
-                  <p style={{color:C.muted,fontSize:13,margin:0,lineHeight:1.7}}>{v.desc}</p>
-                </div>
-              ))}
-            </div>
-            <div style={{background:C.card,border:`1px solid ${C.border}`,padding:22,borderLeft:`3px solid ${C.crimson}`}}>
-              <div style={{fontWeight:700,fontSize:12,letterSpacing:"0.08em",marginBottom:14}}>DEVX AI LABS RIGHT NOW</div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
-                {[
-                  {label:"PROOF OF MODEL",  value:"✓",        sub:"3× YoY growth, profitable"},
-                  {label:"INTL. DEMAND",    value:"Organic",  sub:"International revenue, no dedicated sales hire"},
-                  {label:"AI TOOLCHAIN",    value:"Live",     sub:"Running internally on every engagement today"},
-                ].map(v=>(
-                  <div key={v.label} style={{textAlign:"center",padding:"14px 8px",background:C.card2,border:`1px solid ${C.border}`}}>
-                    <div style={{fontSize:18,fontWeight:700,color:C.crimson,marginBottom:4}}>{v.value}</div>
-                    <div style={{fontWeight:700,fontSize:11,letterSpacing:"0.05em",marginBottom:4}}>{v.label}</div>
-                    <div style={{color:C.muted,fontSize:10}}>{v.sub}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-      </div>
-
-      {/* Footer */}
-      <div style={{background:C.card,borderTop:`1px solid ${C.border}`,padding:"12px 48px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-        <button onClick={()=>go(-1)} disabled={s===0} style={{padding:"8px 20px",fontSize:12,fontWeight:600,letterSpacing:"0.05em",fontFamily:font,
-          border:`1px solid ${C.border}`,cursor:s===0?"not-allowed":"pointer",background:"transparent",color:s===0?C.dim:C.text,opacity:s===0?0.4:1}}>← PREV</button>
-        <div style={{textAlign:"center"}}>
-          <div style={{color:C.dim,fontSize:11,letterSpacing:"0.1em"}}>{s+1} / {n} · <strong style={{color:C.text}}>{SLIDES[s].toUpperCase()}</strong></div>
-          <div style={{display:"flex",gap:4,justifyContent:"center",marginTop:6}}>
-            {SLIDES.map((_,i)=>(
-              <div key={i} onClick={()=>setS(i)} style={{width:i===s?16:4,height:4,background:i===s?C.crimson:C.border,cursor:"pointer",transition:"width 0.2s"}}/>
-            ))}
-          </div>
-        </div>
-        <button onClick={()=>go(1)} disabled={s===n-1} style={{padding:"8px 20px",fontSize:12,fontWeight:600,letterSpacing:"0.05em",fontFamily:font,
-          border:`1px solid ${s===n-1?C.border:C.crimson}`,cursor:s===n-1?"not-allowed":"pointer",
-          background:s===n-1?"transparent":C.crimson,color:s===n-1?C.dim:"#fff",opacity:s===n-1?0.4:1}}>NEXT →</button>
-      </div>
+// 6 NORTH STAR
+`<span class="sl">NORTH STAR METRIC</span>
+<h2>Revenue per employee.<br><span class="cr">Our only vanity-free metric.</span></h2>
+<p class="sub">We don't optimise for headcount. RPE is the cleanest signal of AI leverage, delivery quality, and org efficiency — all in one number. 80 avg. employees, ₹16.86Cr FY26 revenue.</p>
+<div class="grid2" style="margin-bottom:20px">
+  <div class="card" style="padding:22px">
+    <div style="font-weight:700;font-size:11px;color:var(--dim);letter-spacing:0.1em;margin-bottom:16px">RPE COMPARISON (₹L / EMPLOYEE / YEAR)</div>
+    ${[["Large Indian IT (TCS, Wipro)","₹15L",22,false],["Mid-tier IT services","₹22L",32,false],["devx AI labs FY26 (80 emp.)","₹21.1L",31,true],["devx AI labs FY27 (150 emp.)","₹42.3L",62,true],["devx AI labs FY28 target","₹74L+",100,true]].map(([l,r,p,hi])=>`<div class="rpe-row"><div class="rpe-header"><span style="color:${hi?"#fff":"var(--dim)"};font-size:12px;font-weight:${hi?700:400}">${l}</span><span style="color:${hi?"var(--cr)":"var(--dim)"};font-weight:700;font-size:13px">${r}</span></div><div class="rpe-track"><div class="rpe-fill" style="width:${p}%;background:${hi?"var(--cr)":"var(--border)"}"></div></div></div>`).join("")}
+    <div style="margin-top:10px;font-size:11px;color:var(--dim)">FY26 at mid-tier parity today. The gap widens fast as AI leverage compounds.</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div class="card2"><div style="font-weight:700;font-size:12px;color:var(--cr);margin-bottom:10px;letter-spacing:0.08em">WHY RPE IS THE RIGHT METRIC</div>${chk(["Captures AI leverage — more adoption = higher RPE","Exposes org bloat before it hits the P&L","Aligns incentives: grow revenue, not headcount","Metric top-quartile consulting firms benchmark against"])}</div>
+    <div class="card2">
+      <div style="font-weight:700;font-size:13px;margin-bottom:14px">RPE TRAJECTORY</div>
+      ${[["FY26 actual","₹21.1L","80 avg. employees · profitable baseline",false],["FY27 target","₹42.3L","150 people · GTM + AI tooling",true],["FY28 target","₹74L+","AI leverage compounding at scale",true]].map(([y,r,n,hi])=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--faint)"><div><div style="font-weight:700;font-size:13px;color:${hi?"var(--cr)":"#fff"}">${y}</div><div style="color:var(--muted);font-size:11px;margin-top:2px">${n}</div></div><div style="font-size:20px;font-weight:700;color:${hi?"var(--cr)":"#fff"}">${r}</div></div>`).join("")}
     </div>
-  );
+  </div>
+</div>`,
+
+// 7 TRACTION
+`<span class="sl">TRACTION</span>
+<h2>3× revenue growth.<br><span class="cr">Profitable. A strong client portfolio.</span></h2>
+<p class="sub">Built on strong fundamentals. Zero client churn. Brands across retail, beauty, fashion, F&B, and consumer goods.</p>
+<div class="grid3" style="margin-bottom:20px">
+  <div class="stat"><div class="stat-label">FY26 REVENUE</div><div class="stat-val">₹16.86Cr</div><div class="stat-sub">3× FY25</div></div>
+  <div class="stat"><div class="stat-label">FY26 GROSS MARGIN</div><div class="stat-val" style="color:var(--cr)">52%</div><div class="stat-sub">P&L actual</div></div>
+  <div class="stat"><div class="stat-label">FY26 PBT</div><div class="stat-val" style="color:var(--cr)">₹6.24Cr</div><div class="stat-sub">37% net margin</div></div>
+</div>
+<div class="card" style="margin-bottom:14px">
+  <div class="section-title">CLIENT PORTFOLIO</div>
+  <div class="clients">${CLIENTS.map(c=>`<span class="client-chip">${c}</span>`).join("")}</div>
+</div>
+<div class="grid2">
+  <div class="card2-l"><div style="color:var(--dim);font-size:10px;font-weight:600;letter-spacing:0.1em;margin-bottom:6px">INTERNATIONAL REVENUE</div><div style="font-size:16px;font-weight:700;color:var(--cr);margin-bottom:4px">~10–15%</div><div style="color:var(--muted);font-size:11px">Growing organically — no dedicated sales hire</div></div>
+  <div class="card2-l"><div style="color:var(--dim);font-size:10px;font-weight:600;letter-spacing:0.1em;margin-bottom:6px">AVG TEAM SIZE</div><div style="font-size:16px;font-weight:700;color:var(--cr);margin-bottom:4px">80 employees</div><div style="color:var(--muted);font-size:11px">Avg. over last 12 months</div></div>
+</div>`,
+
+// 8 FINANCIALS
+`<span class="sl">FINANCIALS</span>
+<h2>Path to ₹460Cr.<br><span class="cr">Built on recurring revenue.</span></h2>
+<p class="sub">FY27 is the inflection year. GTM in Western markets, ₹110Cr ARR by exit rate, ₹23Cr PBT. All projections at ₹92/USD.</p>
+<div class="card" style="margin-bottom:14px;padding:20px">
+  <div class="section-title">REVENUE (₹CR) — ACTUALS & PROJECTIONS</div>
+  <canvas id="revenueChart"></canvas>
+</div>
+<div class="grid5" style="margin-bottom:14px">
+  ${[["FY25","₹5.61Cr","Actual","~42%","—",false],["FY26","₹16.86Cr","Actual","52%","₹6.24Cr",false],["FY27E","₹63.5Cr","Target","52%+","₹23Cr",true],["FY28E","₹184Cr","Target","55%+","—",true],["FY29E","₹460Cr","Target","58%+","—",true]].map(([y,r,n,g,p,hi])=>`<div class="proj-card ${hi?"hi":""}"><div class="proj-year">${y}</div><div class="proj-rev">${r}</div><div class="proj-note">${n}</div><div class="proj-gm">GM: ${g}</div>${p!=="—"?`<div class="proj-pbt">PBT: ${p}</div>`:""}</div>`).join("")}
+</div>
+<div class="highlight-box">
+  <div class="grid4">
+    ${[["FY27 ARR EXIT RATE","₹110Cr"],["FY27 PBT TARGET","₹23Cr"],["REVENUE CAGR (FY26→FY29)","~128%"],["GROSS MARGIN TRAJECTORY","52% → 58%+"]].map(([l,v])=>`<div><div style="color:var(--dim);font-size:10px;font-weight:600;letter-spacing:0.1em;margin-bottom:4px">${l}</div><div style="font-size:18px;font-weight:700;color:var(--cr)">${v}</div></div>`).join("")}
+  </div>
+</div>`,
+
+// 9 MARKET
+`<span class="sl">MARKET</span>
+<h2>A $1.4Tn market being<br><span class="cr">repriced by AI.</span></h2>
+<p class="sub">The global IT services market grew for 30 years on one model. AI breaks every assumption. Leaders of the next decade won't be the largest — they'll be the most leveraged.</p>
+<div class="grid3" style="margin-bottom:20px">
+  <div class="mkt-card"><div class="mkt-label">GLOBAL IT SERVICES</div><div class="mkt-val">$1.4Tn</div><div class="mkt-sub">Total addressable, 2025</div></div>
+  <div class="mkt-card"><div class="mkt-label">AI TRANSFORMATION SERVICES</div><div class="mkt-val">$230Bn</div><div class="mkt-sub">Growing at 35% CAGR</div></div>
+  <div class="mkt-card"><div class="mkt-label">RETAIL & E-COM TECH</div><div class="mkt-val">$60Bn</div><div class="mkt-sub">Primary vertical focus</div></div>
+</div>
+<div class="grid2">
+  <div class="card"><div class="section-title">WHY WESTERN MARKETS, WHY NOW</div>${chk(["Western mid-market underserved — big IT is too slow and expensive","AI-native execution consulting is a new buying category incumbents can't claim","devx AI labs already has organic international revenue — no sales team","AWS partnership opens enterprise doors in North America & Europe"])}</div>
+  <div class="card"><div class="section-title">THE COMPETITIVE WINDOW</div>${chk(["Large IT firms (Infosys, Wipro) too slow to restructure delivery","Pure-play AI agencies lack enterprise delivery depth for big mandates","Boutique firms lack org infrastructure to scale past ₹85Cr","devx AI labs is designed for the intersection of all three from day 1"],"✓")}</div>
+</div>`,
+
+// 10 USE OF FUNDS
+`<span class="sl">USE OF FUNDS</span>
+<h2>Two bets.<br><span class="cr">One thesis.</span></h2>
+<p class="sub">We're raising to take devx AI labs to Western markets with proper GTM infrastructure, and to build the AI research capability that becomes our long-term moat.</p>
+<div class="grid2" style="margin-bottom:20px">
+  ${[["🌍","GTM — WESTERN MARKETS","60%",["Sales and pre-sales hires in US/UK — quota-carrying from day 1","AWS partner channel development in Western geographies","Thought leadership and analyst relations (Gartner, Forrester)","First 3 Western marquee client acquisitions","Target: ₹25Cr ARR from international clients by end of FY27"]],["🧠","AI RESEARCH — INTERNAL MOAT","40%",["Proprietary AI evaluation frameworks for delivery quality","LLM-powered tooling: requirements gen, sprint planning, test automation","AI IP across verticals — retail, CS, logistics, OMS automation","Publish research: builds brand, attracts top engineering talent","Target: 3 production-grade AI products clients pay for"]]].map(([i,l,p,items])=>`<div class="card-cr"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><span style="font-size:26px">${i}</span><div><div style="font-weight:700;font-size:13px;letter-spacing:0.05em">${l}</div><div style="color:var(--cr);font-weight:700;font-size:12px;margin-top:2px">${p} of round</div></div></div>${chk(items,"◆")}</div>`).join("")}
+</div>
+<div class="highlight-box">
+  <div style="font-weight:700;font-size:12px;color:var(--cr);letter-spacing:0.08em;margin-bottom:8px">SUCCESS IN 18 MONTHS</div>
+  <div style="display:flex;gap:20px;flex-wrap:wrap">
+    ${["International client base established","₹110Cr ARR at exit rate","2–3 proprietary AI products live","devx AI labs as the category leader"].map(t=>`<div style="display:flex;gap:6px;align-items:center"><span style="color:var(--cr)">›</span><span style="color:var(--muted);font-size:13px">${t}</span></div>`).join("")}
+  </div>
+</div>`,
+
+// 11 WHY NOW
+`<span class="sl">WHY NOW</span>
+<h2>The AI inflection is real.<br><span class="cr">The window is 18 months.</span></h2>
+<p class="sub">Three forces are converging. Miss the window and incumbents will bolt AI on convincingly enough. Move now, and the category is ours to define.</p>
+<div class="grid3" style="margin-bottom:20px">
+  <div class="why-card"><div class="why-icon">⚡</div><div class="why-label">AI CAPABILITY LEAP</div><p class="why-text">LLMs, coding agents, and agentic frameworks have crossed enterprise-readiness. What was experimental 18 months ago is production-grade today.</p></div>
+  <div class="why-card"><div class="why-icon">💸</div><div class="why-label">ENTERPRISE BUYING SHIFT</div><p class="why-text">CFOs are cutting IT vendor headcount costs and demanding outcome-based pricing. The traditional body-shop model is being actively de-selected.</p></div>
+  <div class="why-card"><div class="why-icon">🏆</div><div class="why-label">CATEGORY IS STILL OPEN</div><p class="why-text">No incumbent has credibly repositioned as AI-native in delivery. First-mover in Western markets with proof-of-execution wins the decade.</p></div>
+</div>
+<div class="proof-box">
+  <div style="font-weight:700;font-size:12px;letter-spacing:0.08em">DEVX AI LABS RIGHT NOW</div>
+  <div class="proof-grid">
+    <div class="proof-item"><div class="proof-val">✓</div><div class="proof-label">PROOF OF MODEL</div><div class="proof-sub">3× YoY growth, profitable</div></div>
+    <div class="proof-item"><div class="proof-val">Organic</div><div class="proof-label">INTL. DEMAND</div><div class="proof-sub">International revenue, no dedicated sales hire</div></div>
+    <div class="proof-item"><div class="proof-val">Live</div><div class="proof-label">AI TOOLCHAIN</div><div class="proof-sub">Running internally on every engagement today</div></div>
+  </div>
+</div>`
+];
+
+let cur = 0;
+
+function render() {
+  // tabs
+  const tabs = document.getElementById("tabs");
+  tabs.innerHTML = SLIDES.map((s,i)=>`<button class="tab-btn${i===cur?" active":""}" onclick="jump(${i})">${s}</button>`).join("");
+  // slides
+  const slides = document.getElementById("slides");
+  slides.innerHTML = `<div class="slide active">${content[cur]}</div>`;
+  // footer
+  document.getElementById("footLabel").innerHTML = `${cur+1} / ${SLIDES.length} · <strong>${SLIDES[cur].toUpperCase()}</strong>`;
+  const dots = document.getElementById("dots");
+  dots.innerHTML = SLIDES.map((_,i)=>`<div class="dot${i===cur?" active":""}" style="width:${i===cur?16:4}px" onclick="jump(${i})"></div>`).join("");
+  document.getElementById("prevBtn").disabled = cur===0;
+  document.getElementById("nextBtn").disabled = cur===SLIDES.length-1;
+  // chart
+  if(cur===8) setTimeout(()=>{
+    const ctx = document.getElementById("revenueChart");
+    if(!ctx) return;
+    new Chart(ctx,{type:"bar",data:{labels:["FY25","FY26","FY27E","FY28E","FY29E"],datasets:[{data:[5.61,16.86,63.5,184,460],backgroundColor:["#2a2a2a","#555","#DC143C","#aa1030","#880c28"],borderRadius:3}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`₹${c.raw}Cr`}}},scales:{x:{grid:{display:false},ticks:{color:"#888",font:{family:"Space Grotesk"}}},y:{grid:{color:"#1e1e1e"},ticks:{color:"#888",font:{family:"Space Grotesk"},callback:v=>`₹${v}Cr`}}}}});
+  },100);
 }
+
+function jump(i){cur=i;render();}
+function go(d){cur=Math.max(0,Math.min(SLIDES.length-1,cur+d));render();}
+document.addEventListener("keydown",e=>{if(e.key==="ArrowRight")go(1);if(e.key==="ArrowLeft")go(-1);});
+render();
+</script>
+</body>
+</html>
